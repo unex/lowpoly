@@ -54,7 +54,7 @@ now = datetime.utcnow()
 
 monthrange = calendar.monthrange(now.year,now.month)[1]
 month = now.month
-day = 24 # now.day
+day = now.day
 
 month_name = calendar.month_name[month]
 time = now.time().replace(microsecond=0)
