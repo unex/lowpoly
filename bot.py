@@ -46,7 +46,7 @@ reddit = praw.Reddit(client_id=REDDIT_CLIENT_ID,
 
 print('Successfully logged into reddit as {}'.format(reddit.user.me()))
 
-subreddit = reddit.subreddit('T7x95PL7')
+subreddit = reddit.subreddit('low_poly')
 
 meta = objdict(list(db.table('meta').run())[0])
 
