@@ -2,3 +2,4 @@ Flask-WTF==0.14.2
 rethinkdb==2.3.0.post6
 praw==5.1.0
 Pillow==4.3.0
+gunicorn
