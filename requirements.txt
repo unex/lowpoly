@@ -4,3 +4,5 @@ praw==5.1.0
 Pillow==4.3.0
 gunicorn
 gevent
+requests
+requests_oauthlib
