@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+    <head>
+        <title>low_poly</title>
+
+        {% include 'head.html' %}
+    </head>
+    <body class='preloader-active'>
+        {% include 'preloader.html' %}
+
+        {% include 'header.html' %}
+
+        <div id="content">
+            <div id="winner" style="background-image: url({{winner.image}})">
+                {% include 'countdown.html' %}
+                <div class="info">
+                    <h2>{{winner.title}}</h2>
+                    <h4>by <a href="https://reddit.com/u/{{winner.author}}" target="_blank">/u/{{winner.author}}</a></h4>
+                </div>
+            </div>
+        </div>
+
+        {% include 'footer.html' %}
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
+        <script src="//cdn.muicss.com/mui-0.9.27/js/mui.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+        <script type="text/javascript">
+            (function() {
+                particlesJS.load('preloader-particles', "{{url_for('static',filename='particles.json')}}");
+                let loaded = 1;
+                $('#winner').imagesLoaded({ background: true }).progress(function( instance, image ) {
+                    let total = instance.images.length;
+                    $('#preloader-message').text('Loaded image ' + loaded++ + ' / ' + total)
+                }).then(function() {
+                    $('body').removeClass('preloader-active');
+                });
+            })();
+        </script>
+        <script type="text/javascript">
+            (function() {
+                let countdown_to = {{ countdown_to }};
+
+                let to_epoch = function(ms) {
+                    if (ms) {
+                        var current = Math.round(new Date().getTime() / 1000.0);
+                        var t = Math.abs(ms - current);
+                        var days = parseInt(t / 86400);
+                        t = t - (days * 86400);
+                        var hours = parseInt(t / 3600);
+                        t = t - (hours * 3600);
+                        var minutes = parseInt(t / 60);
+                        t = t - (minutes * 60);
+                        var seconds = t;
+
+                        days = ("00" + days).substr(-2);
+                        hours = ("00" + hours).substr(-2);
+                        minutes = ("00" + minutes).substr(-2);
+                        seconds = ("00" + seconds).substr(-2);
+
+                        return {
+                            "days": days,
+                            "hours": hours,
+                            "minutes": minutes,
+                            "seconds": seconds
+                        };
+                    }
+                };
+
+                var $countdown = $('#countdown');
+
+                window.setInterval(function() {
+                    var time = to_epoch(countdown_to);
+
+                    $countdown.find('.d').text(time.days);
+                    $countdown.find('.h').text(time.hours);
+                    $countdown.find('.m').text(time.minutes);
+                    $countdown.find('.s').text(time.seconds);
+                }, 1000);
+            })();
+        </script>
+    </body>
+</html>

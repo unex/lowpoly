@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+    <head>
+        <title>low_poly | admin</title>
+
+        {% include 'head.html' %}
+    </head>
+    <body>
+        {% include 'header.html' %}
+
+        <div id="content" class="mui-container-fluid">
+            <table class="mui-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Image</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for submission in submissions %}
+                    <tr {% if not submission.image %} class="incomplete" {%endif%} data-json='{{submission|to_json}}'>
+                        <!-- {{submission.id}} -->
+                        <td><a href="{{submission.url}}" target="_blank">{{submission.title}}</a></td>
+                        <td><a href="https://reddit.com/u/{{submission.author}}" target="_blank">/u/{{submission.author}}</a></td>
+                        <td>
+                        {% if submission.image %}
+                            <a href="{{submission.image}}" target="_blank">LINK</a>
+                        {% else %}
+                            NONE
+                        {% endif %}
+                        </td>
+                        <td>{{submission.score}}</td>
+                        <td class='actions'>
+                            <a href='#edit'><i class='material-icons'>edit</i></a>
+                            <a href='#remove'><i class='material-icons'>clear</i></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% include 'footer.html' %}
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdn.muicss.com/mui-0.9.27/js/mui.min.js"></script>
+        <script type="text/javascript">
+            function Modal() {
+                // initialize modal element
+                var $modalEl = $('<div/>');
+
+                // set style
+                $modalEl.css({
+                    width: 400,
+                    height: 300,
+                    margin: '100px auto',
+                    backgroundColor: '#fff'
+                });
+
+                // add content
+                var $formEl = $('<form><input type="text"></form>');
+                $modalEl.append($formEl);
+
+                // show modal
+                mui.overlay('on', $modalEl.get(0));
+            }
+
+            $(".actions a").click(function() {
+                var action = $(this).prop("href").split("#")[1];
+                var submission = $(this).closest("tr").data("json");
+
+                // initialize modal element
+                var $modalEl = $('<div class="modal mui--z3"><div/>');
+                var $formEl;
+
+                // set style
+                // $modalEl.css({
+                //     width: 400,
+                //     height: 300,
+                //     margin: '100px auto',
+                //     backgroundColor: '#fff'
+                // });
+
+                console.log(action, submission)
+
+                // add content
+                if(action == 'edit') {
+                    $formEl = $(`
+                        <form class="mui-form" action="" method="POST">
+                            <legend>Edit</legend>
+                            <a href="` + submission.url + `" target="_blank">` + submission.url + `</a>
+                            <div class="mui-textfield">
+                                <input type="text" placeholder="Title" name="title" value="` + submission.title + `">
+                            </div>
+                            <div class="mui-textfield">
+                                <input type="text" placeholder="Image" name="image" value="` + (submission.image ? submission.image : '') + `">
+                            </div>
+                            <input type="hidden" name="action" value="edit"/>
+                            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+                            <button type="submit" class="mui-btn mui-btn--raised" name="id" value="` + submission.id + `">Save</button>
+                        </form>
+                        `);
+
+                }
+
+                else if(action == 'remove') {
+                    $modalEl.css({
+                        backgroundColor: '#ef5350'
+                    });
+
+
+                    $formEl = $(`
+                        <form class="mui-form" action="" method="POST">
+                            <legend>Remove</legend>
+                            <h6>Remove ` + submission.title + `?</h6>
+                            <input type="hidden" name="action" value="remove"/>
+                            <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
+                            <button type="submit" class="mui-btn mui-btn--raised mui-btn--danger" name="id" value="` + submission.id + `">Remove</button>
+                        </form>
+                        `);
+                }
+
+
+                $modalEl.append($formEl);
+
+                // show modal
+                mui.overlay('on', $modalEl.get(0));
+
+                return false;
+            });
+        </script>
+    </body>
+</html>

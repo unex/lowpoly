@@ -1,0 +1,15 @@
+<header>
+    <div id="logo"><a href="{{url_for('home')}}"><img src="{{url_for('static',filename='images/logo.png')}}"></a></div>
+    <div id="account">
+            {% if session.user %}
+                <span>Logged in as /u/{{session.user.name}}</span>
+                {% if session.user.id in admins %}
+                <a class="mui-btn mui-btn--small mui-btn--primary" href="{{url_for('admin')}}">Admin</a>
+                {% endif %}
+                <a class="mui-btn mui-btn--small" href="{{url_for('logout')}}">Log out</a>
+            {% else %}
+                <a class="mui-btn mui-btn--small" href="{{url_for('login_reddit')}}">Log in</a>
+            {% endif %}
+        </span>
+    </div>
+</header>
