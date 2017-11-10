@@ -200,10 +200,10 @@ def colorscale(hexstr, scalefactor):
 def update_theme(winner):
     new_sidebar = substitute_content(subreddit.mod.settings()['description'],
                                     (
-                                       ""
-                                       "> * {0} monthly winner:*"
-                                       "[{1.title:.30}]({2}) by [{1.author}]({1.author})"
-                                       ""
+                                       "\n"
+                                       "> *{0} monthly winner:*  \n"
+                                       "[{1.title:.30}]({2}) by [{1.author}]({1.author})\n"
+                                       "\n"
                                     ).format(last_month_name, winner, requests.utils.unquote(winner.url)),
                                     'BOTWINNER'
                                 )
