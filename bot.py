@@ -202,7 +202,7 @@ def update_theme(winner):
                                     (
                                        "\n"
                                        "> *{0} monthly winner:*  \n"
-                                       "[{1.title:.30}]({2}) by [{1.author}]({1.author})\n"
+                                       "[{1.title:.30}]({2}) by /u/{1.author}\n"
                                        "\n"
                                     ).format(last_month_name, winner, requests.utils.unquote(winner.url)),
                                     'BOTWINNER'
