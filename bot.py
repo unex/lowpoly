@@ -95,7 +95,17 @@ def get_image(submission):
 
         response = requests.get('https://api.imgur.com/3/album/{}'.format(album_id), headers={'Authorization': 'Client-ID {}'.format(IMGUR_CLIENT_ID)})
 
-        return response.json()['data']['images'][0]['link']
+        if response.status_code not in [404, 429, 500]:
+            return response.json()['data']['images'][0]['link']
+
+    match = re.match('^https?://(?:www\.)?imgur\.com/gallery/([a-zA-Z0-9]+)', url)
+    if match:
+        gallery_id = match.group(1)
+
+        response = requests.get('https://api.imgur.com/3/gallery/{}'.format(gallery_id), headers={'Authorization': 'Client-ID {}'.format(IMGUR_CLIENT_ID)})
+
+        if response.status_code not in [404, 429, 500]:
+            return response.json()['data']['link']
 
     match = re.match(r"(?:https?\:\/\/)?(?:www\.)?(?:m\.)?(?:i\.)?imgur\.com\/([a-zA-Z0-9]+)", url)
     if match:
@@ -103,7 +113,8 @@ def get_image(submission):
 
         response = requests.get('https://api.imgur.com/3/image/{}'.format(image_id), headers={'Authorization': 'Client-ID {}'.format(IMGUR_CLIENT_ID)})
 
-        return response.json()['data']['link']
+        if response.status_code not in [404, 429, 500]:
+            return response.json()['data']['link']
 
     if(url.endswith(tuple(['.png','jpg']))):
         return url
