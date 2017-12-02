@@ -64,7 +64,7 @@ time = now.time().replace(microsecond=0)
 
 next_month_name = calendar.month_name[now.month % 12 + 1]
 
-last_month = month % 12 - 1 or 12
+last_month = month - 1 or 12
 last_month_name = calendar.month_name[last_month]
 last_month_year = now.year - 1 if last_month == 12 else now.year
 
