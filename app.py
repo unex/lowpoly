@@ -70,10 +70,10 @@ def require_auth(f):
 @app.route('/', methods=['GET', 'POST'])
 def home():
     now = datetime.utcnow()
-    voting_start = datetime(now.year, now.month % 12 + 1, 1, tzinfo=timezone.utc).timestamp()
+    voting_start = datetime(now.year if now.month % 12 else now.year + 1, now.month % 12 + 1, 1, tzinfo=timezone.utc).timestamp()
     voting_end = datetime(now.year, now.month, 8, tzinfo=timezone.utc).timestamp()
 
-    if now.timestamp() < voting_end:
+    if now.timestamp() <= voting_start and now.timestamp() < voting_end:
         if session.get('user', None) and request.method == 'POST' and request.form.get('vote'):
             vote = request.form.get('vote')
             query = db.table('votes').filter({'user_id': session.get('user')['id']})
