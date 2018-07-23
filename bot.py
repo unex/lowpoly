@@ -40,6 +40,9 @@ REDDIT_CLIENT_REFRESH_TOKEN = os.environ.get("REDDIT_CLIENT_REFRESH_TOKEN")
 # IMGUR
 IMGUR_CLIENT_ID = os.environ.get("IMGUR_CLIENT_ID")
 
+# SUBREDDIT
+SUBREDDIT = os.environ.get("SUBREDDIT")
+
 db.connect(host=RETHINKDB_HOST, port=28015, db=RETHINKDB_DB, user=RETHINKDB_USER, password=RETHINKDB_PASSWORD).repl()
 
 reddit = praw.Reddit(client_id=REDDIT_CLIENT_ID,
@@ -49,7 +52,7 @@ reddit = praw.Reddit(client_id=REDDIT_CLIENT_ID,
 
 print('Successfully logged into reddit as {}'.format(reddit.user.me()))
 
-subreddit = reddit.subreddit('low_poly')
+subreddit = reddit.subreddit(SUBREDDIT)
 
 meta = objdict(list(db.table('meta').run())[0])
 
