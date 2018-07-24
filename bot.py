@@ -296,7 +296,7 @@ def update_theme(winner):
 
     subreddit.stylesheet.update(stylesheet)
 
-def main():
+if __name__ == '__main__':
     if(day == monthrange - 7):
         submission = subreddit.submit("{} theme voting".format(next_month_name),
                                       selftext = ("Hello everyone, please comment your suggestion for next months theme.\n\n"
@@ -367,6 +367,3 @@ def main():
         update_meta({'monthly_winner': submission.id})
 
         update_theme(winner)
-
-if __name__ == '__main__':
-    main()
