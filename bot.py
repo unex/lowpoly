@@ -54,6 +54,8 @@ print('Successfully logged into reddit as {}'.format(reddit.user.me()))
 
 FLAIR_LABELS = ['Blender', 'Unity', 'Modo', '3DS Max', 'Cinema 4D', 'Maya', '<other>']
 
+FOOTER = "\n\n\n[^(REPORT A PROBLEM)](https://www.reddit.com/message/compose?to=RenegadeAI&subject=yo+dawg+low_poly+is+broke!1!!1&message=%3Cplz+replace+this+with+a+description+of+the+error%2C+links%2C+screenshots%2C+mothers+maiden+name%2C+SSN%2C+credit+card+number+and+pin%2C+name+of+first+pet%2C+etc+thx+bye%3E) ^\\\\\\ [^(GITHUB)](https://github.com/notderw/lowpoly)"
+
 subreddit = reddit.subreddit(SUBREDDIT)
 
 meta = objdict(list(db.table('meta').run())[0])
@@ -306,6 +308,7 @@ def main():
                                       selftext = ("Hello everyone, please comment your suggestion for next months theme.\n\n"
                                                   "The deadline for voting will be the end of {0} {1}.\n\n"
                                                   "Please limit your response to only your theme idea, I am not a smart bot."
+                                                  + FOOTER
                                                  ).format(month_name, monthrange)
                           )
 
@@ -339,8 +342,10 @@ def main():
                                           "This months theme is {0.body} as suggested by /u/{0.author}\n"
                                           "\n"
                                           "Submissions will be due at the end of the month"
+                                          + FOOTER
                                           ).format(winner_comment)
                                       )
+
         submission.mod.sticky(bottom=True)
 
         update_meta({'theme': submission.id})
@@ -355,6 +360,7 @@ def main():
                                               "Thanks to everyone who participated in last month's challenge.\n"
                                               "\n"
                                               "{0}'s winner is /u/{1.author}, with their submission: [{1.title}]({2})"
+                                              + FOOTER
                                           ).format(last_month_name, winner, requests.utils.unquote(winner.url))
                                      )
 
