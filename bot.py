@@ -52,6 +52,8 @@ reddit = praw.Reddit(client_id=REDDIT_CLIENT_ID,
 
 print('Successfully logged into reddit as {}'.format(reddit.user.me()))
 
+FLAIR_LABELS = ['Blender', 'Unity', 'Modo', '3DS Max', 'Cinema 4D', 'Maya', '<other>']
+
 subreddit = reddit.subreddit(SUBREDDIT)
 
 meta = objdict(list(db.table('meta').run())[0])
@@ -79,12 +81,16 @@ def update_meta(data):
         print('Error updating meta {}'.format(e))
 
 def upload_submissions():
+    # reddit won't fuck off with changing search, so now we have to
+    # nake it look ugly and have an identifier in the flair text
+    # since they deprecated searching by css class
+
     submissions = [{
         'image': get_image(submission),
         'url': submission.shortlink,
         'title': re.sub("\[[^]]*\]", '', submission.title),
         'author': submission.author.name
-    } for submission in subreddit.search('flair_css_class:ms+{0}{1}'.format(last_month, str(last_month_year)[2:]), syntax='lucene')]
+    } for submission in subreddit.search('flair:"*{} {} SUBMISSION"'.format(last_month_name, last_month_year))]
 
     db.table('submissions').delete().run()
     db.table('submissions').insert(submissions).run()
@@ -125,28 +131,16 @@ def get_image(submission):
 def update_flairs():
     subreddit.flair.link_templates.clear()
 
-    def set_flair(label, css_suffix=None):
-        css = '' if 'css' in label else label['text'].lower().replace(' ', '')
-        if css_suffix: css += ' ' + css_suffix
-        if 'editable' not in label: label['editable'] = False
+    # This is ugly but it works so fuck it
+    for label in FLAIR_LABELS + ['{} \\\\ {} {} SUBMISSION'.format(label, month_name , now.year) for label in FLAIR_LABELS]:
+        css = label.lower().split(' ')[0]
+        editable = False
 
-        subreddit.flair.link_templates.add(label['text'], css_class=css, text_editable=label['editable'])
+        if label.startswith('<other>'):
+            css = ''
+            editable = True
 
-    labels = [
-        { 'text': 'Blender' },
-        { 'text': 'Unity' },
-        { 'text': 'Modo' },
-        { 'text': '3DS Max' },
-        { 'text': 'Cinema 4D' },
-        { 'text': 'Maya' },
-        { 'text': '<other>', 'css': False, 'editable': True }
-    ]
-
-    for label in labels:
-        set_flair(label)
-
-    for label in labels:
-        set_flair(label, css_suffix = 'ms {0}{1}'.format(month, str(now.year)[2:]))
+        subreddit.flair.link_templates.add(label, css_class=css, text_editable=editable)
 
 def get_monthly_theme():
         submission = reddit.submission(meta.theme_voting)
