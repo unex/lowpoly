@@ -298,12 +298,6 @@ def update_theme(winner):
 
 def main():
     if(day == monthrange - 7):
-        try:
-            reddit.submission(meta.monthly_winner).mod.sticky(state=False)
-
-        except Exception as e:
-            print('ERROR: {}'.format(e))
-
         submission = subreddit.submit("{} theme voting".format(next_month_name),
                                       selftext = ("Hello everyone, please comment your suggestion for next months theme.\n\n"
                                                   "The deadline for voting will be the end of {0} {1}.\n\n"
@@ -313,13 +307,13 @@ def main():
                           )
 
         submission.mod.contest_mode()
-        submission.mod.sticky(bottom=True)
+        submission.mod.sticky()
 
         update_meta({'theme_voting': submission.id})
 
     elif(day == 1):
         try:
-            reddit.submission(meta.theme).mod.sticky(state=False)
+            reddit.submission(meta.monthly_winner).mod.sticky(state=False)
             reddit.submission(meta.theme_voting).mod.sticky(state=False)
             reddit.submission(meta.theme_voting).mod.lock()
 
@@ -346,7 +340,7 @@ def main():
                                           ).format(winner_comment)
                                       )
 
-        submission.mod.sticky(bottom=True)
+        submission.mod.sticky()
 
         update_meta({'theme': submission.id})
 
@@ -365,7 +359,7 @@ def main():
                                      )
 
         try:
-            submission.mod.sticky()
+            submission.mod.sticky(bottom=False)
 
         except Exception as e:
             print('ERROR: {}'.format(e))
