@@ -2,6 +2,7 @@ import os
 import rethinkdb as db
 import requests
 import json
+import logging
 
 from datetime import datetime, timezone
 from functools import wraps
@@ -28,7 +29,9 @@ REDDIT_OAUTH_BASE_URL = "https://oauth.reddit.com/api/v1"
 app = Flask(__name__)
 csrf = CSRFProtect(app)
 
-app.debug = True
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.DEBUG)
+# app.logger.debug('debug')
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
 
