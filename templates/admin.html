@@ -99,7 +99,7 @@
                             </div>
                             <input type="hidden" name="action" value="edit"/>
                             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
-                            <button type="submit" class="mui-btn mui-btn--raised" name="id" value="` + submission.id + `">Save</button>
+                            <button type="submit" class="mui-btn mui-btn--raised" name="_id" value="` + submission._id + `">Save</button>
                         </form>
                         `);
 
@@ -117,7 +117,7 @@
                             <h6>Remove ` + submission.title + `?</h6>
                             <input type="hidden" name="action" value="remove"/>
                             <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/>
-                            <button type="submit" class="mui-btn mui-btn--raised mui-btn--danger" name="id" value="` + submission.id + `">Remove</button>
+                            <button type="submit" class="mui-btn mui-btn--raised mui-btn--danger" name="_id" value="` + submission._id + `">Remove</button>
                         </form>
                         `);
                 }

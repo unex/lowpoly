@@ -32,11 +32,10 @@
                                 {% endif %}
                                 <span>by <a href="https://reddit.com/u/{{submission.author}}" target="_blank">/u/{{submission.author}}</a></span>
 
-
-                                {% if current_vote == submission.id %}
-                                <button class="mui-btn mui-btn--primary mui-btn--small" name="vote" value="{{ submission.id }}" disabled>Your Vote</button>
+                                {% if current_vote == submission._id %}
+                                <button class="mui-btn mui-btn--primary mui-btn--small" name="vote" value="{{ submission._id }}" disabled>Your Vote</button>
                                 {% elif session.user %}
-                                <button class="mui-btn mui-btn--primary mui-btn--small" name="vote" value="{{ submission.id }}">Vote</button>
+                                <button class="mui-btn mui-btn--primary mui-btn--small" name="vote" value="{{ submission._id }}">Vote</button>
                                 {% endif %}
                             </div>
                         </div>

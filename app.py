@@ -1,8 +1,10 @@
-import os
-import rethinkdb as db
+import os, sys
 import requests
 import json
 import logging
+import pymongo
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 from datetime import datetime, timezone
 from functools import wraps
@@ -12,11 +14,12 @@ from flask_wtf.csrf import CSRFProtect
 
 ADMINS = os.environ.get("ADMINS").split(',')
 
-# RETHINKDB
-RETHINKDB_HOST = os.environ.get("RETHINKDB_HOST")
-RETHINKDB_DB = os.environ.get("RETHINKDB_DB")
-RETHINKDB_USER = os.environ.get("RETHINKDB_USER")
-RETHINKDB_PASSWORD = os.environ.get("RETHINKDB_PASSWORD")
+# DATABASE
+DB_HOST = os.environ.get("DB_HOST")
+DB_PORT = os.environ.get("DB_PORT")
+DB_DB = os.environ.get("DB_DB")
+DB_USER = os.environ.get("DB_USER")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
 # REDDIT API
 REDDIT_APP_ID = os.environ.get("REDDIT_APP_ID")
@@ -35,26 +38,8 @@ app.logger.setLevel(logging.DEBUG)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
 
-# open connection before each request
-@app.before_request
-def before_request():
-    session.permanent = True
-
-    try:
-        g.db_conn = db.connect(host=RETHINKDB_HOST, port=28015, db=RETHINKDB_DB, user=RETHINKDB_USER, password=RETHINKDB_PASSWORD).repl()
-
-    except db.errors.ReqlDriverError:
-        return render_template('error.html', session=session,  error={
-            'message': 'o fucc this should never happen you should tell someone <br><br> ReqlDriverError'
-        })
-
-# close the connection after each request
-@app.teardown_request
-def teardown_request(exception):
-    try:
-        g.db_conn.close()
-    except AttributeError:
-        pass
+mongo = MongoClient(host=DB_HOST, port=int(DB_PORT), username=DB_USER, password=DB_PASSWORD, authSource=DB_DB, authMechanism='SCRAM-SHA-256')
+db = mongo[DB_DB]
 
 def require_auth(f):
     @wraps(f)
@@ -79,33 +64,28 @@ def home():
     if now.timestamp() <= voting_start and now.timestamp() < voting_end:
         if session.get('user', None) and request.method == 'POST' and request.form.get('vote'):
             vote = request.form.get('vote')
-            query = db.table('votes').filter({'user_id': session.get('user')['id']})
 
-            if(query.count().run()): query.update({'vote': vote}).run()
-            else: db.table('votes').insert([{'user_id': session.get('user')['id'], 'vote': vote}]).run()
+            db.votes.update_one(
+                {"id": session.get("user")["id"]},
+                {"$set": {"vote": vote}},
+                upsert = True
+            )
 
-        current_vote = list(db.table('votes').filter({'user_id': session.get('user')['id']}).run()) if session.get('user') else None
+        current_vote = db.votes.find_one({"id": session.get("user")["id"]}) if session.get("user") else None
         return render_template('voting.html',
                                 session=session,
                                 admins=ADMINS,
                                 countdown_to=voting_end,
-                                submissions=db.table('submissions').order_by('title').run(),
-                                current_vote=current_vote[0]['vote'] if current_vote else None
+                                submissions=db.submissions.find({"$query": {}, "$orderby": {"title": pymongo.ASCENDING}}),
+                                current_vote=ObjectId(current_vote["vote"]) if current_vote else None
                             )
 
     else:
-        votes = list(db.table('votes').run())
-        submissions = []
-
-        for submission in db.table('submissions').order_by('title').run():
-            submission['score'] = sum([1 for vote in votes if vote['vote'] == submission['id']])
-            submissions.append(submission)
-
         return render_template('winner.html',
                         session=session,
                         admins=ADMINS,
                         countdown_to=voting_start,
-                        winner=sorted(submissions, key=lambda k: k['score'], reverse=True)[0]
+                        winner=db.submissions.find_one({"_id": ObjectId(count_votes()[0]["_id"])})
                     )
 
 @app.route('/login')
@@ -150,27 +130,31 @@ def login_reddit():
 @require_auth
 def admin():
     action = request.form.get('action', None)
-    _id = request.form.get('id', None)
+    _id = request.form.get('_id', None)
     if request.method == 'POST' and action and _id:
         if action == 'edit':
             title = request.form.get('title', None)
             image = request.form.get('image', None)
 
             if title and image:
-                db.table('submissions').get(_id).update({'title': title, 'image': image}).run()
+                db.submissions.find_one_and_update(
+                    {"_id": ObjectId(_id)},
+                    {"$set": {'title': title, 'image': image}}
+                )
 
             else: return 'Missing required arguments'
 
         elif action == 'remove':
-            db.table('submissions').get(_id).delete().run()
+            db.submissions.delete_one({"_id": ObjectId(_id)})
 
         else: return 'Undefined action'
 
-    votes = list(db.table('votes').run())
-    submissions = []
+    votes = {vote["_id"]: vote["count"] for vote in count_votes()}
 
-    for submission in db.table('submissions').order_by('title').run():
-        submission['score'] = sum([1 for vote in votes if vote['vote'] == submission['id']])
+    submissions = []
+    for submission in db.submissions.find({"$query": {}, "$orderby": {"title": pymongo.ASCENDING}}):
+        submission["_id"] = str(submission["_id"])
+        submission["score"] = votes[submission["_id"]] if submission["_id"] in votes else 0
         submissions.append(submission)
 
     return render_template('admin.html',
@@ -182,6 +166,19 @@ def admin():
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
+def count_votes():
+    _votes = db.votes.aggregate([
+        {
+            "$group": {
+                "_id": "$vote",
+                "count": {"$sum": 1}
+            }
+        },
+        {"$sort": { "count": -1}}
+    ])
+
+    return list(_votes)
 
 def to_json(value):
     return json.dumps(value)

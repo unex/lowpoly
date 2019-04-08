@@ -13,7 +13,7 @@ requests = "*"
 requests-oauthlib = "*"
 Flask-WTF = "*"
 Pillow = "*"
-rethinkdb = "*"
+pymongo = "*"
 
 [requires]
 python_version = "3.7"

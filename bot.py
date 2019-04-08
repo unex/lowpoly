@@ -1,9 +1,11 @@
 import os
 import re
 import praw
-import rethinkdb as db
 import calendar
 import requests
+
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 from io import BytesIO
 from PIL import Image
@@ -26,11 +28,12 @@ class objdict(dict):
         else:
             raise AttributeError("No such attribute: " + name)
 
-# RETHINKDB
-RETHINKDB_HOST = os.environ.get("RETHINKDB_HOST")
-RETHINKDB_DB = os.environ.get("RETHINKDB_DB")
-RETHINKDB_USER = os.environ.get("RETHINKDB_USER")
-RETHINKDB_PASSWORD = os.environ.get("RETHINKDB_PASSWORD")
+# DATABASE
+DB_HOST = os.environ.get("DB_HOST")
+DB_PORT = os.environ.get("DB_PORT")
+DB_DB = os.environ.get("DB_DB")
+DB_USER = os.environ.get("DB_USER")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
 # REDDIT
 REDDIT_CLIENT_ID = os.environ.get("REDDIT_CLIENT_ID")
@@ -43,7 +46,8 @@ IMGUR_CLIENT_ID = os.environ.get("IMGUR_CLIENT_ID")
 # SUBREDDIT
 SUBREDDIT = os.environ.get("SUBREDDIT")
 
-db.connect(host=RETHINKDB_HOST, port=28015, db=RETHINKDB_DB, user=RETHINKDB_USER, password=RETHINKDB_PASSWORD).repl()
+mongo = MongoClient(host=DB_HOST, port=int(DB_PORT), username=DB_USER, password=DB_PASSWORD, authSource=DB_DB, authMechanism='SCRAM-SHA-256')
+db = mongo[DB_DB]
 
 reddit = praw.Reddit(client_id=REDDIT_CLIENT_ID,
                      client_secret=REDDIT_CLIENT_SECRET,
@@ -64,7 +68,7 @@ FOOTER = "  \n&nbsp;\n ___\n [](#BOT_FOOTER)^" + "&#32;|&#32;".join(LINKS).repla
 
 subreddit = reddit.subreddit(SUBREDDIT)
 
-meta = objdict(list(db.table('meta').run())[0])
+meta = objdict(db.meta.find_one({}))
 
 now = datetime.utcnow()
 
@@ -75,7 +79,7 @@ day = now.day
 month_name = calendar.month_name[month]
 time = now.time().replace(microsecond=0)
 
-next_month_name = calendar.month_name[now.month % 12 + 1]
+next_month_name = calendar.month_name[month % 12 + 1]
 
 last_month = month - 1 or 12
 last_month_name = calendar.month_name[last_month]
@@ -83,7 +87,7 @@ last_month_year = now.year - 1 if last_month == 12 else now.year
 
 def update_meta(data):
     try:
-        db.table('meta').update(data).run()
+        db.meta.update_one({}, {"$set": data})
 
     except Exception as e:
         print('Error updating meta {}'.format(e))
@@ -98,10 +102,10 @@ def upload_submissions():
         'url': submission.shortlink,
         'title': re.sub("\[[^]]*\]", '', submission.title),
         'author': submission.author.name
-    } for submission in subreddit.search('flair:"*{} {} SUBMISSION"'.format(last_month_name, last_month_year))]
+    } for submission in reddit.subreddit("low_poly").search('flair:"*{} {} SUBMISSION"'.format(last_month_name, last_month_year))]
 
-    db.table('submissions').delete().run()
-    db.table('submissions').insert(submissions).run()
+    db.submissions.delete_many({})
+    if submissions: db.submissions.insert_many(submissions)
 
 def get_image(submission):
     url = submission.url.replace('http:', 'https:')
@@ -157,13 +161,17 @@ def get_monthly_theme():
         return sorted(submission.comments, key=lambda k: k.score, reverse=True)[0]
 
 def get_winner():
-    votes = list(db.table('votes').run())
-    submissions = []
-    for submission in db.table('submissions').order_by('title').run():
-            submission['score'] = sum([1 for vote in votes if vote['vote'] == submission['id']])
-            submissions.append(submission)
+    winner = db.votes.aggregate([
+        {
+            "$group": {
+                "_id": "$vote",
+                "count": {"$sum": 1}
+            }
+        },
+        {"$sort": { "count": -1}}
+    ])
 
-    return objdict(sorted(submissions, key=lambda k: k['score'], reverse=True)[0])
+    return objdict(db.submissions.find_one({"_id": ObjectId(list(winner)[0]["_id"])}))
 
 def substitute_content(original_content, new, marker):
     content = re.sub(r'(\[\]\(#' + marker + '\)).*(\[\]\(/' + marker + '\))', '\\1\\2', original_content, flags=re.DOTALL)
