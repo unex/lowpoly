@@ -3,6 +3,7 @@ import re
 import praw
 import calendar
 import requests
+import urllib
 
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -58,8 +59,14 @@ print('Successfully logged into reddit as {}'.format(reddit.user.me()))
 
 FLAIR_LABELS = ['Blender', 'Unity', 'Modo', '3DS Max', 'Cinema 4D', 'Maya', '<other>']
 
+REPORT = {
+    "to": "RenegadeAI",
+    "subject": "yo dawg low_poly is broke!1!!1",
+    "message": "<plz replace this with a description of the error, links, screenshots, mothers maiden name, SSN, credit card number and pin, name of first pet, etc thx bye>"
+}
+
 LINKS = [
-    "[**Report a Problem**](https://www.reddit.com/message/compose?to=RenegadeAI&subject=yo+dawg+low_poly+is+broke!1!!1&message=%3Cplz+replace+this+with+a+description+of+the+error%2C+links%2C+screenshots%2C+mothers+maiden+name%2C+SSN%2C+credit+card+number+and+pin%2C+name+of+first+pet%2C+etc+thx+bye%3E)",
+    f'[**Report a Problem**](https://old.reddit.com/message/compose?{urllib.parse.urlencode(REPORT, quote_via=urllib.parse.quote)})',
     "[**Github**](https://github.com/notderw/lowpoly)",
     "[**Discord**](https://discord.gg/9aHrFvr)"
 ]
