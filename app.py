@@ -197,3 +197,6 @@ def make_reddit_session(token=None, state=None, scope=None):
         auto_refresh_url=None,
         token_updater=None
     )
+
+if __name__ == '__main__':
+    app.run(debug=True)
