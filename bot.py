@@ -54,7 +54,13 @@ print('Successfully logged into reddit as {}'.format(reddit.user.me()))
 
 FLAIR_LABELS = ['Blender', 'Unity', 'Modo', '3DS Max', 'Cinema 4D', 'Maya', '<other>']
 
-FOOTER = "\n\n\n[^(REPORT A PROBLEM)](https://www.reddit.com/message/compose?to=RenegadeAI&subject=yo+dawg+low_poly+is+broke!1!!1&message=%3Cplz+replace+this+with+a+description+of+the+error%2C+links%2C+screenshots%2C+mothers+maiden+name%2C+SSN%2C+credit+card+number+and+pin%2C+name+of+first+pet%2C+etc+thx+bye%3E) ^\\\\\\ [^(GITHUB)](https://github.com/notderw/lowpoly)"
+LINKS = [
+    "[**Report a Problem**](https://www.reddit.com/message/compose?to=RenegadeAI&subject=yo+dawg+low_poly+is+broke!1!!1&message=%3Cplz+replace+this+with+a+description+of+the+error%2C+links%2C+screenshots%2C+mothers+maiden+name%2C+SSN%2C+credit+card+number+and+pin%2C+name+of+first+pet%2C+etc+thx+bye%3E)",
+    "[**Github**](https://github.com/notderw/lowpoly)",
+    "[**Discord**](https://discord.gg/9aHrFvr)"
+]
+
+FOOTER = "  \n&nbsp;\n ___\n [](#BOT_FOOTER)^" + "&#32;|&#32;".join(LINKS).replace(" ", "&#32;")
 
 subreddit = reddit.subreddit(SUBREDDIT)
 
