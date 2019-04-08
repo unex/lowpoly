@@ -113,10 +113,12 @@ def login_reddit():
     # Check for state and for 0 errors
     state = session.get('oauth2_state')
     if request.values.get('error'):
-        return render_template('error.html', session=session,  error= {
-            'message': 'There was an error authenticating with reddit: {}'.format(request.values.get('error')),
-            'link': '<a href="{}">Return Home</a>'.format(url_for('verify'))
-        })
+        return "\r\n".join([
+            f'<pre>'
+            f'There was an error authenticating with reddit: {request.values.get("error")}',
+            f'<a href="{url_for("logout")}">Return Home</a>'
+            f'</pre>'
+        ])
 
     if state and request.args.get('code'):
         # Fetch token
