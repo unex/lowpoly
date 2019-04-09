@@ -41,6 +41,12 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configur
 mongo = MongoClient(host=DB_HOST, port=int(DB_PORT), username=DB_USER, password=DB_PASSWORD, authSource=DB_DB, authMechanism='SCRAM-SHA-256')
 db = mongo[DB_DB]
 
+@app.before_request
+def before_request():
+    if request.url.startswith('http://') and not app.debug:
+        url = request.url.replace('http://', 'https://', 1)
+        return redirect(url, code=301)
+
 def require_auth(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
