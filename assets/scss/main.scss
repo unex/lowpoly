@@ -125,15 +125,17 @@ footer {
         line-height: 42px;
     }
 
-    a {
-        color: rgba(0,0,0,0.5);
-        fill: rgba(0,0,0,0.5);
-        transition: all .3s ease;
-    }
+    li {
+        a {
+            color: rgba(0,0,0,0.5);
+            fill: rgba(0,0,0,0.5);
+            transition: all .3s ease;
+        }
 
-    a:hover {
-        color: #000;
-        fill: #000;
+        a:hover {
+            color: #000;
+            fill: #000;
+        }
     }
 
     #footer-info {
@@ -147,7 +149,7 @@ footer {
     margin-top: 6px;
     margin-bottom: -6px;
 
-    img {
+    svg {
         display: block ;
         height: 36px;
     }
