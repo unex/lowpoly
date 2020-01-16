@@ -344,7 +344,7 @@ if __name__ == '__main__':
         upload_submissions()
 
         submission = subreddit.submit("{} voting now open! Click here to pick your favourite submission!".format(last_month_name),
-                                      url = "https://lowpoly.synesis.co/"
+                                      url = "https://lowpoly.derw.xyz/"
                                       )
         submission.mod.sticky()
 
