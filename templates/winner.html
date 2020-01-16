@@ -11,6 +11,7 @@
         {% include 'header.html' %}
 
         <div id="content">
+            {% if winner %}
             <div id="winner" style="background-image: url({{winner.image}})">
                 {% include 'countdown.html' %}
                 <div class="info">
@@ -18,6 +19,11 @@
                     <h4>by <a href="https://reddit.com/u/{{winner.author}}" target="_blank">/u/{{winner.author}}</a></h4>
                 </div>
             </div>
+            {% else %}
+            <div class="mui-container">
+                <h2>Not enough votes to calculate a winner for this time period</h2>
+            </div>
+            {% endif %}
         </div>
 
         {% include 'footer.html' %}
